@@ -1,700 +1,203 @@
-# qgpt.py - Quantum Generative Pre-trained Transformer
-# Based on the Matrix-Geometric Origin of Quantum Reality Framework
-
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import numpy as np
 import math
-from typing import Optional, Tuple
-import logging
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger('QGPT')
+# ==============================================================================
+# 1. The Core Innovation: Quantum Geometric Embedding Layer
+#    With the CORRECT definition for Êk as per the paper.
+# ==============================================================================
 
-# =============================================================================
-# QUANTUM EMERGENCE FRAMEWORK COMPONENTS
-# =============================================================================
-
-class QuantumEmergenceRFFEmbedding(nn.Module):
+class QuantumGeometricEmbedding(nn.Module):
     """
-    Random Fourier Features using the Quantum Emergence Framework
-    
-    Implements dual rotation matrices:
-    - B(β) = cos(β)I + sin(β)J  (emergence operator)
-    - H(β) = -cos(β)I + sin(β)J (complementary operator)
-    
-    Where J = [[0, -1], [1, 0]] represents the imaginary unit
-    These operators satisfy: B(β) × H(β) = -I
+    Implements the Generalized Emergence Operator from the paper (Sec 2.2).
+    This layer processes token embeddings by applying the geometric operators
+    B(β)Êj and H(β)Êk, creating a rich, structured representation.
+
+    - B(β) = e^(βJ) = cos(β)I + sin(β)J
+    - H(β) = -e^(-βJ) = -cos(β)I + sin(β)J
+    - Êj = [[0, -1], [1, 0]]  (as per Eq. 30)
+    - Êk = [[0, 1], [-1, 0]] (as per Eq. 30, and corrected here)
+
+    The properties Êj^2 = -I and Êk^2 = -I are now correctly satisfied.
     """
-    def __init__(self, input_dim, output_dim, num_frequencies, gamma=1.0, trainable_beta=True):
+    def __init__(self, d_model, dropout=0.1):
         super().__init__()
-        self.input_dim = input_dim
-        self.output_dim = output_dim
-        self.num_frequencies = num_frequencies
-        
-        # Ensure even dimensions for rotation matrices
-        self.padded_input_dim = input_dim if input_dim % 2 == 0 else input_dim + 1
-        self.num_pairs = self.padded_input_dim // 2
-        
-        # Random frequencies for rotation angles
-        frequencies = torch.randn(self.num_pairs, num_frequencies) * math.sqrt(2 * gamma)
-        self.register_buffer('frequencies', frequencies)
-        
-        # Random phase shifts
-        phases = torch.rand(num_frequencies) * 2 * math.pi
-        self.register_buffer('phases', phases)
-        
-        # Learnable rotation angle β (fundamental quantum parameter)
-        if trainable_beta:
-            self.beta = nn.Parameter(torch.tensor(math.pi / 6))  # Default π/6
-        else:
-            self.register_buffer('beta', torch.tensor(math.pi / 6))
-        
-        # Output projection
-        self.output_projection = nn.Linear(2 * self.padded_input_dim * num_frequencies, output_dim)
-        self.layer_norm = nn.LayerNorm(output_dim)
-        
-        # Emergence strength parameter
-        self.emergence_strength = nn.Parameter(torch.tensor(1.0))
-    
-    def forward(self, x):
-        original_shape = x.shape[:-1]
-        
-        # Flatten batch dimensions
-        if len(x.shape) > 2:
-            x = x.view(-1, x.shape[-1])
-        
-        # Pad if necessary
-        if self.input_dim % 2 == 1:
-            x = torch.cat([x, torch.zeros(x.shape[0], 1, device=x.device)], dim=-1)
-        
-        # Reshape to pairs
-        x_pairs = x.view(x.shape[0], self.num_pairs, 2)
-        x1 = x_pairs[:, :, 0]
-        x2 = x_pairs[:, :, 1]
-        
-        B_features = []  # B(β) operator features
-        H_features = []  # H(β) operator features
-        
-        for freq_idx in range(self.num_frequencies):
-            # Calculate rotation angles
-            angles = torch.matmul(x1, self.frequencies[:, freq_idx]) + self.phases[freq_idx]
-            angles = angles.unsqueeze(1) * self.emergence_strength
-            
-            # Apply quantum rotation angle β
-            effective_beta = angles * self.beta
-            cos_beta = torch.cos(effective_beta)
-            sin_beta = torch.sin(effective_beta)
-            
-            # B(β) operator: [[cos(β), -sin(β)], [sin(β), cos(β)]]
-            x1_B = x1 * cos_beta - x2 * sin_beta
-            x2_B = x1 * sin_beta + x2 * cos_beta
-            B_rotated = torch.stack([x1_B, x2_B], dim=-1).view(x.shape[0], -1)
-            B_features.append(B_rotated)
-            
-            # H(β) operator: [[-cos(β), -sin(β)], [sin(β), -cos(β)]]
-            x1_H = x1 * (-cos_beta) - x2 * sin_beta
-            x2_H = x1 * sin_beta + x2 * (-cos_beta)
-            H_rotated = torch.stack([x1_H, x2_H], dim=-1).view(x.shape[0], -1)
-            H_features.append(H_rotated)
-        
-        # Combine features from both operators
-        quantum_features = torch.cat(B_features + H_features, dim=-1)
-        quantum_features = quantum_features * math.sqrt(1.0 / self.num_frequencies)
-        
-        # Project and normalize
-        output = self.output_projection(quantum_features)
-        output = self.layer_norm(output)
-        
-        # Reshape to original
-        if len(original_shape) > 1:
-            output = output.view(*original_shape, self.output_dim)
-        
-        return output
-    
-    def get_quantum_metrics(self):
-        """Return quantum metrics for monitoring"""
-        return {
-            'beta': self.beta.item(),
-            'emergence_strength': self.emergence_strength.item(),
-            'oscillation_frequency': 2 * abs(torch.cos(self.beta).item())
-        }
-
-
-class QuantumMultiHeadAttention(nn.Module):
-    """
-    Quantum-Enhanced Multi-Head Attention
-    Uses emergence operators for attention computation
-    """
-    def __init__(self, d_model, n_heads, dropout=0.1):
-        super().__init__()
-        assert d_model % n_heads == 0
-        
         self.d_model = d_model
-        self.n_heads = n_heads
-        self.d_k = d_model // n_heads
-        
-        # Quantum-enhanced projections using RFF
-        self.q_proj = QuantumEmergenceRFFEmbedding(d_model, d_model, num_frequencies=64)
-        self.k_proj = QuantumEmergenceRFFEmbedding(d_model, d_model, num_frequencies=64)
-        self.v_proj = QuantumEmergenceRFFEmbedding(d_model, d_model, num_frequencies=64)
-        self.out_proj = nn.Linear(d_model, d_model)
-        
+
+        if d_model % 2 != 0:
+            raise ValueError(f"d_model must be even for QuantumGeometricEmbedding, but got {d_model}")
+        self.num_pairs = d_model // 2
+
+        self.beta_projection = nn.Linear(d_model, 1)
+        self.output_projection = nn.Linear(2 * d_model, d_model)
+        self.layer_norm = nn.LayerNorm(d_model)
         self.dropout = nn.Dropout(dropout)
+
+        # CORRECT definitions for the constant geometric matrices Êj and Êk from Eq. 30.
+        Ej = torch.tensor([[0., -1.], [1., 0.]])
+        Ek = torch.tensor([[0., 1.], [-1., 0.]]) # CORRECTED DEFINITION
+        self.register_buffer('Ej', Ej)
+        self.register_buffer('Ek', Ek)
+
+        # Verification step during initialization
+        assert torch.allclose(torch.matmul(self.Ej, self.Ej), -torch.eye(2)), "Ej^2 != -I"
+        assert torch.allclose(torch.matmul(self.Ek, self.Ek), -torch.eye(2)), "Ek^2 != -I"
+
+    def forward(self, x):
+        """
+        x: Input tensor of shape (batch_size, seq_len, d_model)
+        """
+        batch_size, seq_len, _ = x.shape
         
-        # Learnable quantum temperature
-        self.quantum_temp = nn.Parameter(torch.tensor(1.0))
-    
-    def forward(self, query, key, value, mask=None):
-        batch_size, seq_len, _ = query.shape
+        # 1. Calculate the data-dependent rotation angle β
+        beta = self.beta_projection(x)
+        cos_beta = torch.cos(beta).view(batch_size * seq_len, 1, 1)
+        sin_beta = torch.sin(beta).view(batch_size * seq_len, 1, 1)
+
+        # 2. Construct the B(β) and H(β) operator matrices
+        I = torch.eye(2, device=x.device).unsqueeze(0)
+        J = self.Ej.unsqueeze(0)
         
-        # Quantum projections
-        Q = self.q_proj(query)
-        K = self.k_proj(key)
-        V = self.v_proj(value)
+        B_matrix = cos_beta * I + sin_beta * J
+        H_matrix = -cos_beta * I + sin_beta * J
+
+        # 3. Form the complete geometric operators: Op1 = B(β)Êj and Op2 = H(β)Êk
+        op1 = torch.matmul(B_matrix, self.Ej)
+        op2 = torch.matmul(H_matrix, self.Ek)
+
+        # Prepare input for matrix multiplication
+        x_vectors = x.view(batch_size * seq_len, self.num_pairs, 2, 1)
+
+        # 4. Apply the operators to the input vectors
+        x_transformed_1 = torch.matmul(op1.unsqueeze(1), x_vectors).squeeze(-1)
+        x_transformed_2 = torch.matmul(op2.unsqueeze(1), x_vectors).squeeze(-1)
+
+        # Flatten the pairs back into a vector
+        features_1 = x_transformed_1.view(batch_size * seq_len, self.d_model)
+        features_2 = x_transformed_2.view(batch_size * seq_len, self.d_model)
+
+        # 5. Combine features and project back to d_model
+        combined_features = torch.cat([features_1, features_2], dim=-1)
+        projected_output = self.output_projection(combined_features)
         
-        # Reshape for multi-head attention
-        Q = Q.view(batch_size, seq_len, self.n_heads, self.d_k).transpose(1, 2)
-        K = K.view(batch_size, -1, self.n_heads, self.d_k).transpose(1, 2)
-        V = V.view(batch_size, -1, self.n_heads, self.d_k).transpose(1, 2)
+        output = projected_output.view(batch_size, seq_len, self.d_model)
         
-        # Quantum-scaled attention scores
-        scores = torch.matmul(Q, K.transpose(-2, -1)) / math.sqrt(self.d_k)
-        scores = scores / self.quantum_temp  # Apply quantum temperature
-        
-        if mask is not None:
-            scores = scores.masked_fill(mask == 0, -1e9)
-        
-        # Softmax with quantum correction
-        attn_weights = F.softmax(scores, dim=-1)
-        attn_weights = self.dropout(attn_weights)
-        
-        # Apply attention
-        context = torch.matmul(attn_weights, V)
-        context = context.transpose(1, 2).contiguous().view(batch_size, seq_len, self.d_model)
-        
-        output = self.out_proj(context)
-        
-        return output, attn_weights
+        # Apply dropout, layer norm, and a residual connection for stability
+        return self.dropout(self.layer_norm(output + x))
 
 
-class QuantumTransformerBlock(nn.Module):
-    """
-    Quantum Transformer Block with emergence operators
-    """
-    def __init__(self, d_model, n_heads, d_ff, dropout=0.1):
+# ==============================================================================
+# 2. Standard Transformer Components (Unchanged)
+# ==============================================================================
+
+class CausalSelfAttention(nn.Module):
+    def __init__(self, d_model, n_head, dropout):
         super().__init__()
-        
-        # Quantum attention
-        self.attention = QuantumMultiHeadAttention(d_model, n_heads, dropout)
-        
-        # Quantum feed-forward using emergence RFF
-        self.ff_quantum = nn.Sequential(
-            QuantumEmergenceRFFEmbedding(d_model, d_ff, num_frequencies=128),
-            nn.GELU(),
-            nn.Dropout(dropout),
-            nn.Linear(d_ff, d_model)
-        )
-        
-        # Layer norms
-        self.ln1 = nn.LayerNorm(d_model)
-        self.ln2 = nn.LayerNorm(d_model)
-        
-        # Dropout
+        assert d_model % n_head == 0
+        self.d_model, self.n_head, self.d_head = d_model, n_head, d_model // n_head
+        self.qkv_proj = nn.Linear(d_model, 3 * d_model)
+        self.out_proj = nn.Linear(d_model, d_model)
         self.dropout = nn.Dropout(dropout)
         
-        # Quantum residual scaling
-        self.quantum_residual = nn.Parameter(torch.tensor(1.0))
-    
-    def forward(self, x, mask=None):
-        # Quantum attention with residual
-        attn_out, _ = self.attention(x, x, x, mask)
-        x = x + self.quantum_residual * self.dropout(attn_out)
-        x = self.ln1(x)
+    def forward(self, x):
+        B, T, C = x.size()
+        q, k, v = self.qkv_proj(x).split(self.d_model, dim=2)
+        q, k, v = [t.view(B, T, self.n_head, self.d_head).transpose(1, 2) for t in (q, k, v)]
         
-        # Quantum feed-forward with residual
-        ff_out = self.ff_quantum(x)
-        x = x + self.quantum_residual * self.dropout(ff_out)
-        x = self.ln2(x)
+        mask = torch.tril(torch.ones(T, T, device=x.device)).view(1, 1, T, T)
+        att = (q @ k.transpose(-2, -1)) * (1.0 / math.sqrt(self.d_head))
+        att = att.masked_fill(mask == 0, float('-inf'))
+        att = F.softmax(att, dim=-1)
+        att = self.dropout(att)
         
+        y = (att @ v).transpose(1, 2).contiguous().view(B, T, C)
+        return self.out_proj(y)
+
+class FeedForward(nn.Module):
+    def __init__(self, d_model, d_ff, dropout):
+        super().__init__()
+        self.net = nn.Sequential(nn.Linear(d_model, d_ff), nn.GELU(), nn.Linear(d_ff, d_model), nn.Dropout(dropout))
+    def forward(self, x): return self.net(x)
+
+class TransformerBlock(nn.Module):
+    def __init__(self, d_model, n_head, d_ff, dropout):
+        super().__init__()
+        self.ln1 = nn.LayerNorm(d_model)
+        self.attn = CausalSelfAttention(d_model, n_head, dropout)
+        self.ln2 = nn.LayerNorm(d_model)
+        self.ff = FeedForward(d_model, d_ff, dropout)
+    def forward(self, x):
+        x = x + self.attn(self.ln1(x))
+        x = x + self.ff(self.ln2(x))
         return x
 
+# ==============================================================================
+# 3. The QuantumGPT Model (Uses the corrected embedding layer)
+# ==============================================================================
 
-class QuantumPositionalEncoding(nn.Module):
-    """
-    Quantum-aware positional encoding using rotation matrices
-    """
-    def __init__(self, d_model, max_len=5000):
+class QuantumGPT(nn.Module):
+    def __init__(self, vocab_size, d_model, n_layer, n_head, d_ff, dropout, max_seq_len):
         super().__init__()
-        
-        # Standard sinusoidal encoding
-        pe = torch.zeros(max_len, d_model)
-        position = torch.arange(0, max_len).unsqueeze(1).float()
-        
-        div_term = torch.exp(torch.arange(0, d_model, 2).float() * 
-                            -(math.log(10000.0) / d_model))
-        
-        pe[:, 0::2] = torch.sin(position * div_term)
-        pe[:, 1::2] = torch.cos(position * div_term)
-        
-        self.register_buffer('pe', pe.unsqueeze(0))
-        
-        # Quantum modulation
-        self.quantum_modulation = QuantumEmergenceRFFEmbedding(
-            d_model, d_model, num_frequencies=32, trainable_beta=True
-        )
-    
-    def forward(self, x):
-        seq_len = x.size(1)
-        pos_encoding = self.pe[:, :seq_len, :]
-        
-        # Apply quantum modulation to positional encoding
-        quantum_pos = self.quantum_modulation(pos_encoding)
-        
-        return x + quantum_pos
-
-
-# =============================================================================
-# QUANTUM GPT MODEL
-# =============================================================================
-
-class QGPT(nn.Module):
-    """
-    Quantum Generative Pre-trained Transformer
-    
-    Integrates the Matrix-Geometric Framework throughout:
-    - Quantum embeddings using B(β) and H(β) operators
-    - Quantum attention mechanisms
-    - Emergence strength tracking
-    - Geometric alignment optimization
-    """
-    def __init__(
-        self,
-        vocab_size,
-        d_model=768,
-        n_heads=12,
-        n_layers=12,
-        d_ff=3072,
-        max_len=1024,
-        dropout=0.1,
-        tie_weights=True
-    ):
-        super().__init__()
-        
-        self.d_model = d_model
-        self.vocab_size = vocab_size
-        
-        # Token embeddings with quantum enhancement
         self.token_embedding = nn.Embedding(vocab_size, d_model)
-        self.quantum_token_enhance = QuantumEmergenceRFFEmbedding(
-            d_model, d_model, num_frequencies=64
-        )
-        
-        # Quantum positional encoding
-        self.pos_encoding = QuantumPositionalEncoding(d_model, max_len)
-        
-        # Dropout
-        self.dropout = nn.Dropout(dropout)
-        
-        # Quantum transformer blocks
+        self.quantum_embedding = QuantumGeometricEmbedding(d_model=d_model, dropout=dropout)
         self.transformer_blocks = nn.ModuleList([
-            QuantumTransformerBlock(d_model, n_heads, d_ff, dropout)
-            for _ in range(n_layers)
+            TransformerBlock(d_model, n_head, d_ff, dropout) for _ in range(n_layer)
         ])
-        
-        # Final layer norm
-        self.ln_f = nn.LayerNorm(d_model)
-        
-        # Output projection with quantum correction
-        self.output_quantum = QuantumEmergenceRFFEmbedding(
-            d_model, d_model, num_frequencies=32
-        )
+        self.final_ln = nn.LayerNorm(d_model)
         self.lm_head = nn.Linear(d_model, vocab_size, bias=False)
+        self.token_embedding.weight = self.lm_head.weight
         
-        # Tie weights between embedding and output
-        if tie_weights:
-            self.lm_head.weight = self.token_embedding.weight
-        
-        # Quantum metrics tracking
-        self.emergence_tracker = nn.ModuleList([
-            nn.Sequential(
-                nn.Linear(d_model, 64),
-                nn.GELU(),
-                nn.Linear(64, 1),
-                nn.Sigmoid()
-            ) for _ in range(n_layers)
-        ])
-        
-        # Initialize weights
-        self.apply(self._init_weights)
-        
-        logger.info(f"Initialized QGPT with {self.count_parameters():,} parameters")
-        logger.info(f"Quantum emergence framework integrated throughout architecture")
-    
-    def _init_weights(self, module):
-        if isinstance(module, nn.Linear):
-            torch.nn.init.normal_(module.weight, mean=0.0, std=0.02)
-            if module.bias is not None:
-                torch.nn.init.zeros_(module.bias)
-        elif isinstance(module, nn.Embedding):
-            torch.nn.init.normal_(module.weight, mean=0.0, std=0.02)
-        elif isinstance(module, nn.LayerNorm):
-            torch.nn.init.ones_(module.weight)
-            torch.nn.init.zeros_(module.bias)
-    
-    def forward(
-        self,
-        input_ids,
-        attention_mask=None,
-        return_emergence_scores=False
-    ):
-        batch_size, seq_len = input_ids.shape
-        
-        # Create causal mask
-        if attention_mask is None:
-            attention_mask = torch.tril(
-                torch.ones(seq_len, seq_len, device=input_ids.device)
-            ).unsqueeze(0).unsqueeze(1)
-        
-        # Token embeddings with quantum enhancement
-        token_embeds = self.token_embedding(input_ids)
-        token_embeds = self.quantum_token_enhance(token_embeds)
-        
-        # Add quantum positional encoding
-        x = self.pos_encoding(token_embeds)
-        x = self.dropout(x)
-        
-        # Track emergence scores
-        emergence_scores = []
-        
-        # Apply quantum transformer blocks
-        for i, block in enumerate(self.transformer_blocks):
-            x = block(x, attention_mask)
-            
-            # Calculate emergence score for this layer
-            if return_emergence_scores:
-                layer_emergence = self.emergence_tracker[i](x.mean(dim=1))
-                emergence_scores.append(layer_emergence)
-        
-        # Final layer norm
-        x = self.ln_f(x)
-        
-        # Apply quantum output transformation
-        x = self.output_quantum(x)
-        
-        # Project to vocabulary
+    def forward(self, idx, targets=None):
+        tok_emb = self.token_embedding(idx)
+        x = self.quantum_embedding(tok_emb)
+        for block in self.transformer_blocks:
+            x = block(x)
+        x = self.final_ln(x)
         logits = self.lm_head(x)
         
-        if return_emergence_scores:
-            emergence_scores = torch.stack(emergence_scores, dim=1)
-            return logits, emergence_scores
+        loss = None
+        if targets is not None:
+            loss = F.cross_entropy(logits.view(-1, logits.size(-1)), targets.view(-1), ignore_index=-1)
+        return logits, loss
         
-        return logits
-    
-    def generate(
-        self,
-        input_ids,
-        max_length=100,
-        temperature=1.0,
-        top_k=50,
-        top_p=0.95,
-        do_sample=True,
-        num_return_sequences=1,
-        use_quantum_sampling=True
-    ):
-        """
-        Generate text with quantum-enhanced sampling
-        """
-        self.eval()
-        
-        batch_size = input_ids.shape[0] * num_return_sequences
-        input_ids = input_ids.repeat_interleave(num_return_sequences, dim=0)
-        
-        with torch.no_grad():
-            for _ in range(max_length - input_ids.shape[1]):
-                # Get logits
-                logits, emergence_scores = self.forward(
-                    input_ids, 
-                    return_emergence_scores=True
-                )
-                next_token_logits = logits[:, -1, :]
-                
-                # Apply quantum temperature scaling
-                if use_quantum_sampling:
-                    # Use emergence strength to modulate temperature
-                    quantum_temp = temperature * (1 + 0.5 * emergence_scores[:, -1, 0])
-                    next_token_logits = next_token_logits / quantum_temp
-                else:
-                    next_token_logits = next_token_logits / temperature
-                
-                # Apply top-k and top-p filtering
-                if top_k > 0:
-                    indices_to_remove = next_token_logits < torch.topk(next_token_logits, top_k)[0][..., -1, None]
-                    next_token_logits[indices_to_remove] = -float('Inf')
-                
-                if top_p < 1.0:
-                    sorted_logits, sorted_indices = torch.sort(next_token_logits, descending=True)
-                    cumulative_probs = torch.cumsum(F.softmax(sorted_logits, dim=-1), dim=-1)
-                    
-                    # Remove tokens with cumulative probability above threshold
-                    sorted_indices_to_remove = cumulative_probs > top_p
-                    sorted_indices_to_remove[..., 1:] = sorted_indices_to_remove[..., :-1].clone()
-                    sorted_indices_to_remove[..., 0] = 0
-                    
-                    indices_to_remove = sorted_indices_to_remove.scatter(
-                        1, sorted_indices, sorted_indices_to_remove
-                    )
-                    next_token_logits[indices_to_remove] = -float('Inf')
-                
-                # Sample
-                probs = F.softmax(next_token_logits, dim=-1)
-                
-                if do_sample:
-                    next_token = torch.multinomial(probs, num_samples=1)
-                else:
-                    next_token = torch.argmax(probs, dim=-1, keepdim=True)
-                
-                # Append to sequence
-                input_ids = torch.cat([input_ids, next_token], dim=1)
-                
-                # Stop if all sequences have generated EOS token
-                if (next_token == self.token_embedding.num_embeddings - 1).all():
-                    break
-        
-        return input_ids
-    
     def count_parameters(self):
-        """Count trainable parameters"""
         return sum(p.numel() for p in self.parameters() if p.requires_grad)
-    
-    def get_quantum_metrics(self):
-        """Get quantum metrics from all components"""
-        metrics = {}
-        
-        # Collect metrics from quantum embeddings
-        for name, module in self.named_modules():
-            if isinstance(module, QuantumEmergenceRFFEmbedding):
-                module_metrics = module.get_quantum_metrics()
-                for key, value in module_metrics.items():
-                    metrics[f"{name}.{key}"] = value
-        
-        return metrics
 
-
-# =============================================================================
-# TRAINING UTILITIES
-# =============================================================================
-
-class QuantumTrainer:
-    """
-    Trainer for QGPT with quantum-aware optimization
-    """
-    def __init__(
-        self,
-        model,
-        train_dataloader,
-        val_dataloader=None,
-        learning_rate=3e-4,
-        warmup_steps=1000,
-        device='cuda'
-    ):
-        self.model = model.to(device)
-        self.device = device
-        self.train_dataloader = train_dataloader
-        self.val_dataloader = val_dataloader
-        
-        # Quantum-aware optimizer with different learning rates
-        quantum_params = []
-        regular_params = []
-        
-        for name, param in model.named_parameters():
-            if 'beta' in name or 'quantum' in name:
-                quantum_params.append(param)
-            else:
-                regular_params.append(param)
-        
-        self.optimizer = torch.optim.AdamW([
-            {'params': regular_params, 'lr': learning_rate},
-            {'params': quantum_params, 'lr': learning_rate * 0.1}  # Lower LR for quantum params
-        ], weight_decay=0.01)
-        
-        # Learning rate scheduler
-        self.scheduler = self.get_linear_schedule_with_warmup(
-            self.optimizer, warmup_steps, len(train_dataloader) * 10
-        )
-        
-        self.criterion = nn.CrossEntropyLoss()
-        self.step = 0
-    
-    @staticmethod
-    def get_linear_schedule_with_warmup(optimizer, num_warmup_steps, num_training_steps):
-        def lr_lambda(current_step):
-            if current_step < num_warmup_steps:
-                return float(current_step) / float(max(1, num_warmup_steps))
-            return max(
-                0.0, float(num_training_steps - current_step) / 
-                float(max(1, num_training_steps - num_warmup_steps))
-            )
-        
-        return torch.optim.lr_scheduler.LambdaLR(optimizer, lr_lambda)
-    
-    def train_epoch(self):
-        self.model.train()
-        total_loss = 0
-        total_emergence = 0
-        
-        progress_bar = tqdm(self.train_dataloader, desc="Training")
-        
-        for batch in progress_bar:
-            input_ids = batch['input_ids'].to(self.device)
-            labels = batch['labels'].to(self.device)
-            
-            # Forward pass with emergence tracking
-            logits, emergence_scores = self.model(
-                input_ids, 
-                return_emergence_scores=True
-            )
-            
-            # Compute loss
-            loss = self.criterion(
-                logits.view(-1, logits.size(-1)),
-                labels.view(-1)
-            )
-            
-            # Add quantum regularization
-            emergence_reg = 0.01 * (1 - emergence_scores.mean())
-            total_loss_step = loss + emergence_reg
-            
-            # Backward pass
-            self.optimizer.zero_grad()
-            total_loss_step.backward()
-            torch.nn.utils.clip_grad_norm_(self.model.parameters(), 1.0)
-            self.optimizer.step()
-            self.scheduler.step()
-            
-            # Track metrics
-            total_loss += loss.item()
-            total_emergence += emergence_scores.mean().item()
-            self.step += 1
-            
-            # Update progress bar
-            progress_bar.set_postfix({
-                'loss': f"{loss.item():.4f}",
-                'emergence': f"{emergence_scores.mean().item():.4f}",
-                'lr': f"{self.scheduler.get_last_lr()[0]:.2e}"
-            })
-        
-        avg_loss = total_loss / len(self.train_dataloader)
-        avg_emergence = total_emergence / len(self.train_dataloader)
-        
-        return avg_loss, avg_emergence
-    
-    def evaluate(self):
-        if self.val_dataloader is None:
-            return None, None
-        
-        self.model.eval()
-        total_loss = 0
-        total_emergence = 0
-        
-        with torch.no_grad():
-            for batch in tqdm(self.val_dataloader, desc="Evaluating"):
-                input_ids = batch['input_ids'].to(self.device)
-                labels = batch['labels'].to(self.device)
-                
-                logits, emergence_scores = self.model(
-                    input_ids,
-                    return_emergence_scores=True
-                )
-                
-                loss = self.criterion(
-                    logits.view(-1, logits.size(-1)),
-                    labels.view(-1)
-                )
-                
-                total_loss += loss.item()
-                total_emergence += emergence_scores.mean().item()
-        
-        avg_loss = total_loss / len(self.val_dataloader)
-        avg_emergence = total_emergence / len(self.val_dataloader)
-        
-        return avg_loss, avg_emergence
-
-
-# =============================================================================
-# EXAMPLE USAGE
-# =============================================================================
-
-def create_qgpt_model(vocab_size=50257, **kwargs):
-    """
-    Create a QGPT model with default GPT-2 like configuration
-    """
-    default_config = {
-        'd_model': 768,
-        'n_heads': 12,
-        'n_layers': 12,
-        'd_ff': 3072,
-        'max_len': 1024,
+# ==============================================================================
+# 4. Example Usage
+# ==============================================================================
+if __name__ == '__main__':
+    # --- Model Hyperparameters ---
+    config = {
+        'vocab_size': 1000,
+        'd_model': 128,
+        'n_layer': 4,
+        'n_head': 4,
+        'd_ff': 128 * 4,
         'dropout': 0.1,
-        'tie_weights': True
+        'max_seq_len': 256,
     }
-    
-    default_config.update(kwargs)
-    
-    model = QGPT(vocab_size=vocab_size, **default_config)
-    
-    # Log quantum metrics
-    quantum_metrics = model.get_quantum_metrics()
-    logger.info("Quantum Metrics at Initialization:")
-    for name, value in quantum_metrics.items():
-        logger.info(f"  {name}: {value:.4f}")
-    
-    return model
 
-
-if __name__ == "__main__":
-    # Example: Create and test QGPT
-    logger.info("Creating Quantum GPT model...")
+    # --- Instantiate the Model ---
+    model = QuantumGPT(**config)
+    print(f"QuantumGPT model initialized with {model.count_parameters():,} parameters.")
+    print("Geometric matrices Êj and Êk properties verified at initialization.")
     
-    # Create model
-    model = create_qgpt_model(vocab_size=50257)
+    # --- Create Dummy Data and Run a Forward Pass ---
+    batch_size = 4
+    seq_len = 64
+    dummy_input = torch.randint(0, config['vocab_size'], (batch_size, seq_len))
+    dummy_targets = torch.randint(0, config['vocab_size'], (batch_size, seq_len))
     
-    # Test forward pass
-    batch_size = 2
-    seq_len = 128
-    test_input = torch.randint(0, 50257, (batch_size, seq_len))
+    print(f"\nRunning a forward pass with input shape: {dummy_input.shape}")
     
-    logger.info(f"Testing forward pass with input shape: {test_input.shape}")
+    logits, loss = model(dummy_input, targets=dummy_targets)
     
-    with torch.no_grad():
-        output, emergence = model(test_input, return_emergence_scores=True)
-        
-    logger.info(f"Output shape: {output.shape}")
-    logger.info(f"Emergence scores shape: {emergence.shape}")
-    logger.info(f"Mean emergence strength: {emergence.mean().item():.4f}")
+    print(f"Output logits shape: {logits.shape}")
+    print(f"Calculated loss: {loss.item():.4f}")
     
-    # Test generation
-    logger.info("\nTesting quantum text generation...")
-    prompt = torch.tensor([[1, 2, 3, 4, 5]])  # Example token IDs
+    assert logits.shape == (batch_size, seq_len, config['vocab_size'])
+    assert loss is not None
     
-    generated = model.generate(
-        prompt,
-        max_length=50,
-        temperature=0.8,
-        use_quantum_sampling=True
-    )
-    
-    logger.info(f"Generated sequence shape: {generated.shape}")
-    
-    # Display quantum metrics
-    logger.info("\nFinal Quantum Metrics:")
-    quantum_metrics = model.get_quantum_metrics()
-    for name, value in quantum_metrics.items():
-        if 'beta' in name:
-            logger.info(f"  {name}: {value:.4f} rad ({value*180/math.pi:.1f}°)")
-        else:
-            logger.info(f"  {name}: {value:.4f}")
-    
-    logger.info("\nQGPT successfully created and tested!")
-    logger.info("The model integrates quantum emergence throughout the architecture")
+    print("\n✅ Final corrected QuantumGPT ran successfully!")
