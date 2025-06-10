@@ -23,56 +23,38 @@ The hypothesis is that this structured, geometric "preprocessing" of embeddings 
 ```mermaid
 %%{init: {'theme': 'dark', 'flowchart': {'htmlLabels': true}}}%%
 graph TD
-    %% --- 1. Define Nodes with Compact Text ---
-    A["Input Tokens<br/>(batch, seq_len)"];
-    B["Token Embedding<br/>Layer"];
-    C["Token Embeddings 'x'<br/>(batch, seq_len, d_model)"];
-    
-    QGE_in["Input 'x'"];
-    beta_proj["Project for<br/>angle β"];
-    path1["Apply Op1<br/>B(β)Êj"];
-    path2["Apply Op2<br/>H(β)Êk"];
-    concat["Concatenate"];
-    out_proj["Project to<br/>d_model"];
-    add_norm["Add Residual<br/>& LayerNorm"];
-    QGE_out["Enriched<br/>Embeddings"];
 
-    Transformer_Input["Input from<br/>Quantum Layer"];
-    Block_1["Transformer Block 1"];
-    Dotted_Line["..."];
-    Block_N["Transformer Block N"];
-
-    Final_Layers_Input["Input from<br/>Transformer Blocks"];
-    final_ln["Final LayerNorm"];
-    lm_head["LM Head<br/>(Linear Layer)"];
-    Z["Output Logits<br/>(batch, seq_len, vocab_size)"];
-
-    %% --- 2. Create Compact Title Nodes ---
-    Title_Input["<b>Input Processing</b>"];
-    Title_QGE["<b>QuantumGeometric<br/>Embedding Layer</b>"];
-    Title_Transformer["<b>N x Transformer Blocks</b>"];
-    Title_Output["<b>Output Processing</b>"];
-
-    %% --- 3. Group Nodes into UNLABELED Subgraphs ---
-    subgraph sg1 ""
+    %% --- Subgraph 1: Input Processing ---
+    subgraph "Input<br/>Processing"
         direction TB
-        Title_Input --> A --> B --> C;
+        A["Input Tokens<br/>(batch, seq_len)"];
+        B["Token Embedding<br/>Layer"];
+        C["Token Embeddings 'x'<br/>(batch, seq_len, d_model)"];
+        A --> B --> C;
     end
 
-    subgraph sg2 ""
+    %% --- Subgraph 2: Quantum Embedding ---
+    subgraph "QuantumGeometric<br/>Embedding Layer"
         direction TB
-        Title_QGE --> QGE_in;
-        QGE_in --> beta_proj;
+        QGE_in["Input 'x'"];
+        beta_proj["Project for<br/>angle β"];
         
-        subgraph sg2_parallel ""
+        subgraph " "
             direction LR
-            beta_proj --> path1;
-            beta_proj --> path2;
+            path1["Apply Op1<br/>B(β)Êj"];
+            path2["Apply Op2<br/>H(β)Êk"];
         end
-        
+
+        concat["Concatenate"];
+        out_proj["Project to<br/>d_model"];
+        add_norm["Add Residual<br/>& LayerNorm"];
+        QGE_out["Enriched<br/>Embeddings"];
+
+        QGE_in --> beta_proj;
+        beta_proj -.-> path1;
+        beta_proj -.-> path2;
         QGE_in --> path1;
         QGE_in --> path2;
-        
         path1 --> concat;
         path2 --> concat;
         concat --> out_proj;
@@ -81,35 +63,36 @@ graph TD
         add_norm --> QGE_out;
     end
 
-    subgraph sg3 ""
+    %% --- Subgraph 3: Transformer Blocks ---
+    subgraph "N x<br/>Transformer Blocks"
         direction TB
-        Title_Transformer --> Transformer_Input --> Block_1 --> Dotted_Line --> Block_N;
+        Transformer_Input["Input from<br/>Quantum Layer"];
+        Block_1["Transformer Block 1"];
+        Dotted_Line["..."];
+        Block_N["Transformer Block N"];
+        Transformer_Input --> Block_1 --> Dotted_Line --> Block_N;
     end
 
-    subgraph sg4 ""
+    %% --- Subgraph 4: Output Processing ---
+    subgraph "Output<br/>Processing"
         direction TB
-        Title_Output --> Final_Layers_Input --> final_ln --> lm_head --> Z;
+        Final_Layers_Input["Input from<br/>Transformer Blocks"];
+        final_ln["Final LayerNorm"];
+        lm_head["LM Head<br/>(Linear Layer)"];
+        Z["Output Logits<br/>(batch, seq_len, vocab_size)"];
+        Final_Layers_Input --> final_ln --> lm_head --> Z;
     end
     
-    %% --- 4. Link the Main Components ---
-    C --> Title_QGE;
-    QGE_out --> Title_Transformer;
-    Block_N --> Title_Output;
+    %% --- Link the Main Subgraphs ---
+    C --> QGE_in;
+    QGE_out --> Transformer_Input;
+    Block_N --> Final_Layers_Input;
 
-    %% --- 5. Apply Styling ---
-    style sg1 fill:none,stroke:none
-    style sg2 fill:none,stroke:none
-    style sg2_parallel fill:none,stroke:none
-    style sg3 fill:none,stroke:none
-    style sg4 fill:none,stroke:none
-    
+    %% --- Apply Styling ---
     classDef darkNode fill:#2d2d2d,stroke:#a9a9a9,stroke-width:1px,color:#f5f5f5;
     classDef accentNode fill:#084469,stroke:#58a6ff,stroke-width:2px,color:#f5f5f5;
-    classDef titleNode fill:none,stroke:none,color:#f5f5f5,font-weight:bold,font-size:16px;
-
     class A,B,C,beta_proj,path1,path2,concat,out_proj,add_norm,QGE_out,Transformer_Input,Block_1,Dotted_Line,Block_N,Final_Layers_Input,final_ln,lm_head,Z darkNode;
     class QGE_in accentNode;
-    class Title_Input,Title_QGE,Title_Transformer,Title_Output titleNode;
 ```
 ## Installation
 
