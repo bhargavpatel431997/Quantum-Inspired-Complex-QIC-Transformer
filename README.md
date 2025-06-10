@@ -20,7 +20,8 @@ The hypothesis is that this structured, geometric "preprocessing" of embeddings 
 
 ## Architecture Diagram
 
-```mermaid%%{init: {'theme': 'dark'}}%%
+```mermaid
+%%{init: {'theme': 'dark'}}%%
 graph TD
     %% --- 1. Define Nodes ---
     A["Input Tokens<br/>(batch, seq_len)"];
