@@ -20,16 +20,13 @@ The hypothesis is that this structured, geometric "preprocessing" of embeddings 
 
 ## Architecture Diagram
 
-```mermaid
+```mermaid%%{init: {'theme': 'dark'}}%%
 graph TD
-    %% --- 1. DEFINE ALL NODES ---
-    
-    %% Input Processing Nodes
-    A["Input Tokens (batch, seq_len)"];
+    %% --- 1. Define Nodes ---
+    A["Input Tokens<br/>(batch, seq_len)"];
     B["Token Embedding Layer"];
-    C["Token Embeddings 'x' (batch, seq_len, d_model)"];
-
-    %% Quantum Geometric Embedding Nodes
+    C["Token Embeddings 'x'<br/>(batch, seq_len, d_model)"];
+    
     QGE_in["Input 'x'"];
     beta_proj["Project to get angle β"];
     path1["Apply Op1 = B(β)Êj"];
@@ -39,58 +36,71 @@ graph TD
     add_norm["Add Residual & LayerNorm"];
     QGE_out["Geometrically Enriched Embeddings"];
 
-    %% Transformer Block Nodes
     Transformer_Input["Input from Quantum Layer"];
     Block_1["Transformer Block (1 of N)"];
     Dotted_Line["..."];
     Block_N["Transformer Block (N)"];
 
-    %% Output Processing Nodes
     Final_Layers_Input["Input from Transformer Blocks"];
     final_ln["Final LayerNorm"];
     lm_head["LM Head (Linear Layer)"];
-    Z["Output Logits (batch, seq_len, vocab_size)"];
+    Z["Output Logits<br/>(batch, seq_len, vocab_size)"];
 
-    %% --- 2. GROUP NODES INTO SUBGRAPHS ---
-    subgraph "Input Processing"
-        A; B; C;
+    %% --- 2. Create Title Nodes (to replace subgraph labels) ---
+    %% This is the key fix to prevent overlapping text.
+    Title_Input["<b>Input Processing</b>"];
+    Title_QGE["<b>QuantumGeometric Embedding Layer</b>"];
+    Title_Transformer["<b>N x Transformer Blocks</b>"];
+    Title_Output["<b>Output Processing</b>"];
+
+    %% --- 3. Group Nodes into UNLABELED Subgraphs ---
+    subgraph sg1 ""
+        direction TB
+        Title_Input --> A --> B --> C;
     end
 
-    subgraph "QuantumGeometricEmbedding Layer"
-        style QGE_in fill:#e6f3ff,stroke:#367dca
-        QGE_in; beta_proj; path1; path2; concat; out_proj; add_norm; QGE_out;
+    subgraph sg2 ""
+        direction TB
+        Title_QGE --> QGE_in;
+        QGE_in --> beta_proj;
+        beta_proj --> path1;
+        beta_proj --> path2;
+        QGE_in --> path1;
+        QGE_in --> path2;
+        path1 --> concat;
+        path2 --> concat;
+        concat --> out_proj;
+        out_proj --> add_norm;
+        QGE_in -- "Residual Connection" --> add_norm;
+        add_norm --> QGE_out;
     end
 
-    subgraph "N x Transformer Blocks"
-        Transformer_Input; Block_1; Dotted_Line; Block_N;
+    subgraph sg3 ""
+        direction TB
+        Title_Transformer --> Transformer_Input --> Block_1 --> Dotted_Line --> Block_N;
     end
 
-    subgraph "Output Processing"
-        Final_Layers_Input; final_ln; lm_head; Z;
+    subgraph sg4 ""
+        direction TB
+        Title_Output --> Final_Layers_Input --> final_ln --> lm_head --> Z;
     end
     
-    %% --- 3. DEFINE ALL LINKS ---
-    
-    %% Main flow
-    A --> B --> C;
-    C --> QGE_in;
-    QGE_out --> Transformer_Input;
-    Transformer_Input --> Block_1 --> Dotted_Line --> Block_N;
-    Block_N --> Final_Layers_Input;
-    Final_Layers_Input --> final_ln --> lm_head --> Z;
-    
-    %% Links within the Quantum Subgraph
-    QGE_in --> beta_proj;
-    beta_proj --> path1;
-    beta_proj --> path2;
-    QGE_in --> path1;
-    QGE_in --> path2;
-    path1 --> concat;
-    path2 --> concat;
-    concat --> out_proj;
-    out_proj --> add_norm;
-    QGE_in -- "Residual Connection" --> add_norm;
-    add_norm --> QGE_out;
+    %% --- 4. Link the Main Components ---
+    C --> Title_QGE;
+    QGE_out --> Title_Transformer;
+    Block_N --> Title_Output;
+
+    %% --- 5. Apply Styling ---
+    %% Style for regular nodes
+    classDef darkNode fill:#2d2d2d,stroke:#a9a9a9,stroke-width:1px,color:#f5f5f5;
+    %% Style for the main input node to make it stand out
+    classDef accentNode fill:#084469,stroke:#58a6ff,stroke-width:2px,color:#f5f5f5;
+    %% Style for the custom title nodes (invisible box, bold text)
+    classDef titleNode fill:none,stroke:none,color:#f5f5f5,font-weight:bold,font-size:16px;
+
+    class A,B,C,beta_proj,path1,path2,concat,out_proj,add_norm,QGE_out,Transformer_Input,Block_1,Dotted_Line,Block_N,Final_Layers_Input,final_ln,lm_head,Z darkNode;
+    class QGE_in accentNode;
+    class Title_Input,Title_QGE,Title_Transformer,Title_Output titleNode;
 ```
 ## Installation
 
