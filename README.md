@@ -21,36 +21,35 @@ The hypothesis is that this structured, geometric "preprocessing" of embeddings 
 ## Architecture Diagram
 
 ```mermaid
-%%{init: {'theme': 'dark'}}%%
+%%{init: {'theme': 'dark', 'flowchart': {'htmlLabels': true}}}%%
 graph TD
-    %% --- 1. Define Nodes ---
+    %% --- 1. Define Nodes with Compact Text ---
     A["Input Tokens<br/>(batch, seq_len)"];
-    B["Token Embedding Layer"];
+    B["Token Embedding<br/>Layer"];
     C["Token Embeddings 'x'<br/>(batch, seq_len, d_model)"];
     
     QGE_in["Input 'x'"];
-    beta_proj["Project to get angle β"];
-    path1["Apply Op1 = B(β)Êj"];
-    path2["Apply Op2 = H(β)Êk"];
-    concat["Concatenate Results"];
-    out_proj["Project back to d_model"];
-    add_norm["Add Residual & LayerNorm"];
-    QGE_out["Geometrically Enriched Embeddings"];
+    beta_proj["Project for<br/>angle β"];
+    path1["Apply Op1<br/>B(β)Êj"];
+    path2["Apply Op2<br/>H(β)Êk"];
+    concat["Concatenate"];
+    out_proj["Project to<br/>d_model"];
+    add_norm["Add Residual<br/>& LayerNorm"];
+    QGE_out["Enriched<br/>Embeddings"];
 
-    Transformer_Input["Input from Quantum Layer"];
-    Block_1["Transformer Block (1 of N)"];
+    Transformer_Input["Input from<br/>Quantum Layer"];
+    Block_1["Transformer Block 1"];
     Dotted_Line["..."];
-    Block_N["Transformer Block (N)"];
+    Block_N["Transformer Block N"];
 
-    Final_Layers_Input["Input from Transformer Blocks"];
+    Final_Layers_Input["Input from<br/>Transformer Blocks"];
     final_ln["Final LayerNorm"];
-    lm_head["LM Head (Linear Layer)"];
+    lm_head["LM Head<br/>(Linear Layer)"];
     Z["Output Logits<br/>(batch, seq_len, vocab_size)"];
 
-    %% --- 2. Create Title Nodes (to replace subgraph labels) ---
-    %% This is the key fix to prevent overlapping text.
+    %% --- 2. Create Compact Title Nodes ---
     Title_Input["<b>Input Processing</b>"];
-    Title_QGE["<b>QuantumGeometric Embedding Layer</b>"];
+    Title_QGE["<b>QuantumGeometric<br/>Embedding Layer</b>"];
     Title_Transformer["<b>N x Transformer Blocks</b>"];
     Title_Output["<b>Output Processing</b>"];
 
@@ -64,15 +63,21 @@ graph TD
         direction TB
         Title_QGE --> QGE_in;
         QGE_in --> beta_proj;
-        beta_proj --> path1;
-        beta_proj --> path2;
+        
+        subgraph sg2_parallel ""
+            direction LR
+            beta_proj --> path1;
+            beta_proj --> path2;
+        end
+        
         QGE_in --> path1;
         QGE_in --> path2;
+        
         path1 --> concat;
         path2 --> concat;
         concat --> out_proj;
         out_proj --> add_norm;
-        QGE_in -- "Residual Connection" --> add_norm;
+        QGE_in -- "Residual" --> add_norm;
         add_norm --> QGE_out;
     end
 
@@ -92,11 +97,14 @@ graph TD
     Block_N --> Title_Output;
 
     %% --- 5. Apply Styling ---
-    %% Style for regular nodes
+    style sg1 fill:none,stroke:none
+    style sg2 fill:none,stroke:none
+    style sg2_parallel fill:none,stroke:none
+    style sg3 fill:none,stroke:none
+    style sg4 fill:none,stroke:none
+    
     classDef darkNode fill:#2d2d2d,stroke:#a9a9a9,stroke-width:1px,color:#f5f5f5;
-    %% Style for the main input node to make it stand out
     classDef accentNode fill:#084469,stroke:#58a6ff,stroke-width:2px,color:#f5f5f5;
-    %% Style for the custom title nodes (invisible box, bold text)
     classDef titleNode fill:none,stroke:none,color:#f5f5f5,font-weight:bold,font-size:16px;
 
     class A,B,C,beta_proj,path1,path2,concat,out_proj,add_norm,QGE_out,Transformer_Input,Block_1,Dotted_Line,Block_N,Final_Layers_Input,final_ln,lm_head,Z darkNode;
