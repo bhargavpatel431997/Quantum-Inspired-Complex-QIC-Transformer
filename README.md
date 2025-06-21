@@ -7,36 +7,47 @@ By making θ a learnable parameter, the Q-Transformer can dynamically adapt the 
 This repository provides the complete, re-derived code for an Encoder-Decoder Q-Transformer, integrating state-of-the-art techniques like RoPE, SwiGLU, and Grouped-Query Attention, all re-engineered for this new algebraic domain.
 
 ## Accuracy
-================================================================================
-                    BENCHMARKING REPORT: QUANTUM VS. STANDARD TRANSFORMER
-================================================================================
+# ====================================================================================
+#                     BENCHMARKING REPORT: QUANTUM VS. STANDARD TRANSFORMER
+# ====================================================================================
 
-1. BENCHMARK SETUP
+## 1. BENCHMARK SETUP
 ------------------------------------------------------------
-  - Objective:       Compare performance of Quantum and Standard Transformers on a sequence
-                   classification task with matched parameter counts.
-  - Task:            Binary Classification (Is the sum of a sequence > 0?)
-  - Training Device: CPU
-  - Common Hyperparams:
-    - Epochs: 50, Learning Rate: 0.001, Batch Size: 32
-  - Quantum Transformer Unique Hyperparam (θ): 0.7854
+- **Objective:**  
+  Compare performance of Quantum and Standard Transformers on a sequence classification task with matched parameter counts.
 
-2. PARAMETER COUNT VERIFICATION
-------------------------------------------------------------
-  - Standard Transformer Parameters: 17,665
-  - Quantum Transformer Parameters:  16,853
-  - Parameter Count Difference:      812 (4.60%)
-  - Conclusion: Parameter counts are closely matched for a fair comparison.
+- **Task:**  
+  Binary Classification (Is the sum of a sequence > 0?)
 
-3. PERFORMANCE RESULTS
+- **Training Device:**  
+  CPU
+
+- **Common Hyperparameters:**  
+  - Epochs: 50  
+  - Learning Rate: 0.001  
+  - Batch Size: 32  
+
+- **Quantum Transformer Unique Hyperparameter (θ):**  
+  0.7854  
+
+## 2. PARAMETER COUNT VERIFICATION
 ------------------------------------------------------------
-  Key Metrics:
-  Metric                    | Standard Transformer      | Quantum Transformer      
---------------------------------------------------------------------------------
-  Final Validation Loss     | 0.0839                     | 0.0554
-  Final Validation Accuracy | 96.50%                     | 98.00%
-  Total Training Time (sec) | 21.17                       | 39.57
-  
+- **Standard Transformer Parameters:** 17,665  
+- **Quantum Transformer Parameters:** 16,853  
+- **Parameter Count Difference:** 812 (**4.60%**)  
+
+**Conclusion:** Parameter counts are closely matched for a fair comparison.
+
+## 3. PERFORMANCE RESULTS
+------------------------------------------------------------
+
+| **Metric**                  | **Standard Transformer** | **Quantum Transformer** |
+|----------------------------|-------------------------|------------------------|
+| Final Validation Loss       | 0.0839                  | 0.0554                 |
+| Final Validation Accuracy   | 96.50%                  | 98.00%                 |
+| Total Training Time (sec)   | 21.17                   | 39.57                  |
+
+
 ## Installation
 
 To get started, clone the repository and install the required dependencies (primarily PyTorch).
