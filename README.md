@@ -45,6 +45,7 @@ This repository provides the complete, re-derived code for an Encoder-Decoder Q-
 | Final Validation Accuracy   | 96.50%                  | 98.00%                 |
 | Total Training Time (sec)   | 21.17                   | 39.57                  |
 
+![image](https://github.com/user-attachments/assets/cb1561d5-65cc-4c82-8213-3f45b604b62b)
 
 ## Installation
 
