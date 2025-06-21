@@ -1,4 +1,4 @@
-# QuantumGPT: A Transformer Model with a Matrix-Geometric Embedding Layer
+# QuantumComplexTransformer: A Transformer Model with a Matrix-Geometric caculation phase theta
 
 This repository contains the PyTorch implementation of the Quantum-Algebraic Transformer (Q-Transformer), a novel Transformer architecture that operates on a tunable, two-component number system. This framework moves beyond standard real-number arithmetic to explore if a richer mathematical substrate can lead to more powerful and parameter-efficient models.
 The core idea is to replace real numbers with Quantum-Complex (QC) numbers of the form z = a + bJ(θ). The behavior of the "imaginary" basis J(θ) is governed by a tunable phase θ, leading to the fundamental algebraic rule:
