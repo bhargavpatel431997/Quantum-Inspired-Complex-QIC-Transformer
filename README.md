@@ -1,99 +1,11 @@
 # QuantumGPT: A Transformer Model with a Matrix-Geometric Embedding Layer
 
-This repository contains the PyTorch implementation of **QuantumGPT**, a generative pre-trained transformer model that replaces standard positional encodings with a novel `QuantumGeometricEmbedding` layer. This layer is directly inspired by the theoretical framework presented in the paper *"The Matrix-Geometric Origin of Quantum Reality"* by Bhargav Patel.
+This repository contains the PyTorch implementation of the Quantum-Algebraic Transformer (Q-Transformer), a novel Transformer architecture that operates on a tunable, two-component number system. This framework moves beyond standard real-number arithmetic to explore if a richer mathematical substrate can lead to more powerful and parameter-efficient models.
+The core idea is to replace real numbers with Quantum-Complex (QC) numbers of the form z = a + bJ(θ). The behavior of the "imaginary" basis J(θ) is governed by a tunable phase θ, leading to the fundamental algebraic rule:
+J(θ)² = (sin(2θ) - 1) * I
+By making θ a learnable parameter, the Q-Transformer can dynamically adapt the rules of its own arithmetic during training. It can learn to operate in different algebraic regimes—behaving like standard complex numbers (J² = -1), nilpotent numbers (J² = 0), or even more exotic systems (J² = -2)—to best suit the problem at hand.
+This repository provides the complete, re-derived code for an Encoder-Decoder Q-Transformer, integrating state-of-the-art techniques like RoPE, SwiGLU, and Grouped-Query Attention, all re-engineered for this new algebraic domain.
 
-The core idea is to construct richer, more structured token embeddings by applying data-dependent geometric transformations derived from real-valued rotation matrices, which are proposed as the origin of complex numbers in quantum mechanics.
-
-## Key Concepts
-
-The standard GPT architecture combines token embeddings with sinusoidal positional encodings. QuantumGPT replaces this with a dynamic, learned process:
-
-1.  **Geometric Foundation**: Instead of simple position addition, the `QuantumGeometricEmbedding` layer treats the token embedding vector `x` as a set of coordinates in multiple 2D planes.
-2.  **Emergence Operators**: The layer implements the paper's **Generalized Emergence Operator** by applying two distinct geometric transformations in parallel:
-    - **Operator 1**: `B(β)Êj`
-    - **Operator 2**: `H(β)Êk`
-    where `B(β)` and `H(β)` are emergence/complementary operators, and `Êj`, `Êk` are fundamental 2x2 rotation matrices satisfying `Êj² = Êk² = -I`.
-3.  **Data-Dependent Rotations**: The rotation angle `β` is not fixed but is learned dynamically from the input token embedding itself, allowing the model to create context-specific geometric structures.
-4.  **Enriched Embeddings**: The outputs of these parallel transformations are concatenated, projected, and combined with a residual connection. This produces a geometrically enriched embedding that is then fed into a standard stack of transformer blocks.
-
-The hypothesis is that this structured, geometric "preprocessing" of embeddings can lead to more efficient learning, better representation of complex relationships, and potentially improved model performance.
-
-## Architecture Diagram
-
-```mermaid
-%%{init: {'theme': 'dark', 'flowchart': {'htmlLabels': true}}}%%
-graph TD
-
-    %% --- Subgraph 1: Input Processing ---
-    subgraph "Input<br/>Processing"
-        direction TB
-        A["Input Tokens<br/>(batch, seq_len)"];
-        B["Token Embedding<br/>Layer"];
-        C["Token Embeddings 'x'<br/>(batch, seq_len, d_model)"];
-        A --> B --> C;
-    end
-
-    %% --- Subgraph 2: Quantum Embedding ---
-    subgraph "QuantumGeometric<br/>Embedding Layer"
-        direction TB
-        QGE_in["Input 'x'"];
-        beta_proj["Project for<br/>angle β"];
-        
-        subgraph " "
-            direction LR
-            path1["Apply Op1<br/>B(β)Êj"];
-            path2["Apply Op2<br/>H(β)Êk"];
-        end
-
-        concat["Concatenate"];
-        out_proj["Project to<br/>d_model"];
-        add_norm["Add Residual<br/>& LayerNorm"];
-        QGE_out["Enriched<br/>Embeddings"];
-
-        QGE_in --> beta_proj;
-        beta_proj -.-> path1;
-        beta_proj -.-> path2;
-        QGE_in --> path1;
-        QGE_in --> path2;
-        path1 --> concat;
-        path2 --> concat;
-        concat --> out_proj;
-        out_proj --> add_norm;
-        QGE_in -- "Residual" --> add_norm;
-        add_norm --> QGE_out;
-    end
-
-    %% --- Subgraph 3: Transformer Blocks ---
-    subgraph "N x<br/>Transformer Blocks"
-        direction TB
-        Transformer_Input["Input from<br/>Quantum Layer"];
-        Block_1["Transformer Block 1"];
-        Dotted_Line["..."];
-        Block_N["Transformer Block N"];
-        Transformer_Input --> Block_1 --> Dotted_Line --> Block_N;
-    end
-
-    %% --- Subgraph 4: Output Processing ---
-    subgraph "Output<br/>Processing"
-        direction TB
-        Final_Layers_Input["Input from<br/>Transformer Blocks"];
-        final_ln["Final LayerNorm"];
-        lm_head["LM Head<br/>(Linear Layer)"];
-        Z["Output Logits<br/>(batch, seq_len, vocab_size)"];
-        Final_Layers_Input --> final_ln --> lm_head --> Z;
-    end
-    
-    %% --- Link the Main Subgraphs ---
-    C --> QGE_in;
-    QGE_out --> Transformer_Input;
-    Block_N --> Final_Layers_Input;
-
-    %% --- Apply Styling ---
-    classDef darkNode fill:#2d2d2d,stroke:#a9a9a9,stroke-width:1px,color:#f5f5f5;
-    classDef accentNode fill:#084469,stroke:#58a6ff,stroke-width:2px,color:#f5f5f5;
-    class A,B,C,beta_proj,path1,path2,concat,out_proj,add_norm,QGE_out,Transformer_Input,Block_1,Dotted_Line,Block_N,Final_Layers_Input,final_ln,lm_head,Z darkNode;
-    class QGE_in accentNode;
-```
 ## Installation
 
 To get started, clone the repository and install the required dependencies (primarily PyTorch).
