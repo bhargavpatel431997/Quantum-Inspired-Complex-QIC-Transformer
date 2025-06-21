@@ -7,9 +7,7 @@ By making θ a learnable parameter, the Q-Transformer can dynamically adapt the 
 This repository provides the complete, re-derived code for an Encoder-Decoder Q-Transformer, integrating state-of-the-art techniques like RoPE, SwiGLU, and Grouped-Query Attention, all re-engineered for this new algebraic domain.
 
 ## Accuracy
-# ====================================================================================
-#                     BENCHMARKING REPORT: QUANTUM VS. STANDARD TRANSFORMER
-# ====================================================================================
+#  BENCHMARKING REPORT: QUANTUM VS. STANDARD TRANSFORMER
 
 ## 1. BENCHMARK SETUP
 ------------------------------------------------------------
