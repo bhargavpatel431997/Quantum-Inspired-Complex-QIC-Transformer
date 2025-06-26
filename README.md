@@ -58,8 +58,8 @@ The QC Transformer finished the 50-epoch training run with better validation met
 
 The following plots illustrate the learning dynamics over 50 epochs.
 
-*(You will need to place your generated `transformer_benchmark_results.png` image in the same directory as your README for this line to work)*
-![Benchmark Results](transformer_benchmark_results.png)
+![image](https://github.com/user-attachments/assets/780a1c53-23de-4dd8-8451-6ef4fc80beaf)
+
 
 1.  **Validation Loss:** The QC Transformer consistently maintains a lower validation loss throughout the training process, indicating better model fit.
 2.  **Validation Accuracy:** The QC Transformer's accuracy curve remains slightly but consistently above the standard model's, converging to a higher final value.
