@@ -26,7 +26,7 @@ The QIC Transformer demonstrates a clear trade-off: superior performance and eff
 | **Final Validation Loss**     | 0.0475               | **0.0361**                   | **-24.0%** (Lower is better)  |
 | **Total Training Time**       | 45.24 sec            | 98.04 sec                    | +116.7% (2.17x slower)       |
 
-![Performance Comparison Plots](transformer_benchmark_results.png)
+![Performance Comparison Plots](transformeres_benchmark_results.png)
 *Figure 1: Comparison of validation loss, validation accuracy, and training time over 50 epochs on a sequence classification task.*
 
 ## Installation
@@ -35,7 +35,7 @@ A virtual environment is strongly recommended to avoid conflicts with existing p
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/bhargavpatel431997/quantum-gpt.git
+git clone https://github.com/bhargavpatel431997/quantum-inspired-complex-qic-transformers.git
 cd quantum-gpt
 
 # 2. Create and activate a virtual environment
