@@ -1,0 +1,17 @@
+# requirements.txt
+#
+# To install these dependencies, run:
+# pip install -r requirements.txt
+
+# Core deep learning framework
+torch
+torchvision
+
+# Numerical computing and data handling
+numpy
+
+# Plotting and visualization
+matplotlib
+
+# Progress bars for training loops
+tqdm
