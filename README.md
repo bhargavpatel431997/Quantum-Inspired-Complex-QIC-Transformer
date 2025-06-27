@@ -35,7 +35,7 @@ A virtual environment is strongly recommended to avoid conflicts with existing p
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/bhargavpatel431997/quantum-inspired-complex-qic-transformers.git
+git clone https://github.com/bhargavpatel431997/quantum-inspired-complex-qic-transformer.git
 cd quantum-inspired-complex-qic-transformers
 
 # 2. Create and activate a virtual environment
