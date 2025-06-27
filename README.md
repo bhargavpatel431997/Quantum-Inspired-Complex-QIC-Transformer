@@ -36,7 +36,7 @@ A virtual environment is strongly recommended to avoid conflicts with existing p
 ```bash
 # 1. Clone the repository
 git clone https://github.com/bhargavpatel431997/quantum-inspired-complex-qic-transformers.git
-cd quantum-gpt
+cd quantum-inspired-complex-qic-transformers
 
 # 2. Create and activate a virtual environment
 python -m venv venv
@@ -58,13 +58,13 @@ This repository is designed around a single, self-contained benchmark script: `b
 To run the complete benchmark and reproduce the results from the paper, execute the following command from the root of the repository:
 
 ```bash
-python benchmark.py
+python benchmark_comparison.py
 ```
 *(Note: Please ensure you have activated your virtual environment first.)*
 
 ## Code Structure
 
-The `benchmark.py` file is organized into several logical parts for clarity:
+The `benchmark_comparison.py.py` file is organized into several logical parts for clarity:
 -   **Part 1: Quantum Complex Arithmetic:** Core functions `qc_add` and `qc_bmm` that define the novel algebra.
 -   **Part 2: QIC Transformer Modules:** Custom PyTorch modules (`QComplexDense`, `QComplexAttention`, etc.) that use the QIC algebra.
 -   **Part 3: Standard Transformer Implementation:** Baseline modules for a fair comparison.
