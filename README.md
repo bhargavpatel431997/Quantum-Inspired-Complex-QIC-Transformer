@@ -48,7 +48,7 @@ pip install -r requirements.txt
 
 ## Reproducing the Benchmark
 
-This repository is designed around a single, self-contained benchmark script: `benchmark.py` (or your script's actual name). This script will automatically:
+This repository is designed around a single, self-contained benchmark script: `benchmark_comparison.py` (or your script's actual name). This script will automatically:
 1.  Configure a standard Transformer and a parameter-matched QIC Transformer.
 2.  Build a synthetic dataset for a sequence classification task.
 3.  Train both models on the CPU for a fair comparison of computational steps.
