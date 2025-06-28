@@ -71,6 +71,8 @@ The `benchmark_comparison.py.py` file is organized into several logical parts fo
 -   **Part 4: Complete Models:** The final `StandardTransformer` and `QTransformerClassifier` models.
 -   **Part 5-7: Benchmark & Training:** Configuration, dataset, training loops, and the main `run_benchmark` function.
 
+## Arxiv Endorsement Open Request
+If you find it interesting and would you like to endorse me for this work then it would be very beneficial for me: https://arxiv.org/auth/endorse?x=SFGC9C
 ## Citation
 
 This work is submitted to JMLR journal, If this work is accepted for publication, we will provide an appropriate citation. For now, please refer to it by the paper title and authors.
