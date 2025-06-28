@@ -73,7 +73,7 @@ The `benchmark_comparison.py.py` file is organized into several logical parts fo
 
 ## Citation
 
-If this work is accepted for publication, we will provide an appropriate citation. For now, please refer to it by the paper title and authors.
+This work is submitted to JMLR journal, If this work is accepted for publication, we will provide an appropriate citation. For now, please refer to it by the paper title and authors.
 
 ```
 Patel, Bhargav. "Quantum-Inspired Complex Transformers: A Novel Algebraic Framework for Enhanced Parameter Efficiency."
