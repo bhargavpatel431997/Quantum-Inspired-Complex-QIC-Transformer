@@ -7,10 +7,10 @@
 
 Official implementation of **"Quantum-Inspired Complex Transformers: Resolving the Fundamental Algebraic Ambiguity for Enhanced Neural Representations"** accepted at NeurIPS 2025 NEGEL Workshop.
 
-**Author:** Bhargav Patel
-**Institution:** Independent Researcher
-**Email:** b.patel.physics@gmail.com
-**ORCID:** [0009-0004-5429-2771](https://orcid.org/0009-0004-5429-2771)
+**Author:** Bhargav Patel </br>
+**Institution:** Independent Researcher </br>
+**Email:** b.patel.physics@gmail.com </br>
+**ORCID:** [0009-0004-5429-2771](https://orcid.org/0009-0004-5429-2771) </br>
 
 ---
 
