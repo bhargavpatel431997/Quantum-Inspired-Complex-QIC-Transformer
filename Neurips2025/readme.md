@@ -249,15 +249,7 @@ Quantum-Inspired-Complex-QIC-Transformer/
 │
 ├── Neurips2025/
 │   ├── code.py                 # Main implementation
-│   ├── main.tex                # Paper LaTeX source
 │   ├── README.md               # This file
-│   ├── reviewer.txt            # Reviewer feedback
-│   ├── code.results            # Experimental results
-│   └── requirements.txt        # Python dependencies
-│
-└── data_cache/                 # Dataset cache (auto-created)
-    ├── imdb_vocab_2m.pkl
-    └── agnews_vocab_2m.pkl
 ```
 
 ### Core Components
