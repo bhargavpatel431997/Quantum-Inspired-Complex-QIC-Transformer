@@ -14,7 +14,7 @@ Official implementation of **"Quantum-Inspired Complex Transformers: Resolving t
 
 ---
 
-## 🚀 Overview
+## Overview
 
 QIC Transformers introduce a novel approach to neural network design by making the imaginary unit **learnable** rather than fixed. Instead of arbitrarily choosing $i$ or $-i$ as the solution to $x^2 = -1$, we treat it as a quantum superposition:
 
@@ -37,7 +37,7 @@ where $\theta$ is a trainable parameter. This creates a continuously parameteriz
 
 ---
 
-## 📋 Table of Contents
+## Table of Contents
 
 - [Installation](#installation)
 - [Quick Start](#quick-start)
@@ -81,7 +81,7 @@ pip install -r requirements.txt
 
 ---
 
-## 🏃 Quick Start
+## Quick Start
 
 ### Basic Usage
 
@@ -124,7 +124,7 @@ FINAL RESULTS SUMMARY
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 ### Standard Transformer
 
@@ -242,7 +242,7 @@ Paper reports:
 
 ---
 
-## 📁 Code Structure
+## Code Structure
 
 ```
 Quantum-Inspired-Complex-QIC-Transformer/
@@ -281,7 +281,7 @@ Quantum-Inspired-Complex-QIC-Transformer/
 
 ---
 
-## 📐 Mathematical Background
+## Mathematical Background
 
 ### The Fundamental Ambiguity
 
@@ -320,7 +320,7 @@ The deviation $\sin(2\theta)$ creates learnable algebraic interactions absent in
 
 ---
 
-## 🔬 Extending the Code
+## Extending the Code
 
 ### Custom Datasets
 
@@ -376,7 +376,7 @@ x_real, x_imag = layer(x_real, x_imag, self.theta[i])
 
 ---
 
-## 📈 Performance Tips
+## Performance Tips
 
 ### GPU Optimization
 
@@ -419,7 +419,7 @@ train_loader = DataLoader(
 
 ---
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 ### Common Issues
 
@@ -461,7 +461,7 @@ pip install --upgrade torch datasets numpy
 
 ---
 
-## 📄 Citation
+## Citation
 
 If you use this code or find our work helpful, please cite:
 
@@ -476,13 +476,13 @@ If you use this code or find our work helpful, please cite:
 
 ---
 
-## 📝 License
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request. For major changes:
 
@@ -494,7 +494,7 @@ Contributions are welcome! Please feel free to submit a Pull Request. For major 
 
 ---
 
-## 📬 Contact
+## Contact
 
 **Bhargav Patel**
 - Email: b.patel.physics@gmail.com
@@ -513,23 +513,3 @@ For questions, issues, or collaborations, feel free to open an issue or reach ou
 - The open-source community for inspiration and tools
 
 ---
-
-## 📊 Additional Resources
-
-- **Paper (arXiv):** Coming soon
-- **Poster:** Available upon request
-- **Presentation Slides:** Available upon request
-- **Supplementary Materials:** See `main.tex` appendix
-
----
-
-## ⭐ Star History
-
-If you find this project useful, please consider giving it a star! ⭐
-
----
-
-**Last Updated:** October 2025
-**Version:** 1.0.0
-**Status:** Active Development
-
