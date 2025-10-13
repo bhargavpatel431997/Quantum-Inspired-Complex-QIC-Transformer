@@ -469,7 +469,7 @@ If you use this code or find our work helpful, please cite:
 @inproceedings{patel2025qic,
   title={Quantum-Inspired Complex Transformers: Resolving the Fundamental Algebraic Ambiguity for Enhanced Neural Representations},
   author={Patel, Bhargav},
-  booktitle={NeurIPS 2025 Workshop on Navigating and Exploring Generalized Experiences and Learning (NEGEL)},
+  booktitle={NeurIPS 2025 Workshop on Non-Euclidean Foundation Models and Geometric Learning (NEGEL)},
   year={2025}
 }
 ```
